@@ -13,7 +13,7 @@
 
 Layanan ini memanfaatkan **Gemini AI** sebagai komponen analisis utama untuk menerjemahkan deskripsi buku menjadi profil suasana seperti mood, genre, dan tingkat energi. Profil tersebut kemudian digunakan untuk mencari musik yang paling relevan melalui layanan katalog musik.
 
-Sebagai bagian dari arsitektur microservice, sistem ini tidak menyimpan data buku maupun musik secara langsung. Seluruh data diambil melalui komunikasi antarlayanan menggunakan REST API, sehingga sistem tetap modular, scalable, dan mudah dikembangkan.
+Sebagai bagian dari sistem terintegrasi berbasis microservices, The Reading Soundtrack memanfaatkan komunikasi antarlayanan melalui REST API tanpa menyimpan data buku maupun musik secara langsung, sehingga sistem tetap modular, scalable, dan mudah dikembangkan.
 
 ---
 
