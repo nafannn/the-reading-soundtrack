@@ -21,7 +21,11 @@ app.use(express.static('public'));
 
 // Request logging middleware
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`${req.method} ${req.url} - Status: ${res.statusCode} - ${duration}ms`);
+    });
     next();
 });
 
