@@ -1,279 +1,110 @@
-# The Reading Soundtrack
+# 🎧 THE READING SOUNDTRACK
 
-Integration service that connects Book Catalog API with Music Catalog API using Gemini AI as decision maker.
+**UAS II3160 – Teknologi Sistem Terintegrasi**  
+**Nama:** Nurul Na'im Natifah  
+**NIM:** 18223106  
+**Kelas:** K-02  
 
-## 📖 Overview
+---
 
-The Reading Soundtrack adalah layanan integrasi yang menghubungkan API Katalog Buku (Service A - Rekan) dengan API Katalog Musik (Service B - Saya). Layanan ini menggunakan Gemini AI untuk menganalisis deskripsi buku dan menentukan profil musik yang cocok, kemudian memberikan rekomendasi musik yang sesuai dengan atmosfer buku.
+## 1. Deskripsi Layanan 📖🎶
 
-**Project ini adalah bagian dari Tugas 3 (Integrasi Layanan) untuk proyek akhir TST.**
+**The Reading Soundtrack** merupakan layanan terintegrasi yang menghubungkan **Book Catalog Service** dan **Music Catalog Service** untuk menciptakan pengalaman membaca yang lebih imersif. Sistem ini dirancang agar pengguna dapat menikmati rekomendasi musik yang sesuai dengan suasana dan karakter buku yang sedang dibaca.
 
-## 🎯 Features
+Layanan ini memanfaatkan **Gemini AI** sebagai komponen analisis utama untuk menerjemahkan deskripsi buku menjadi profil suasana seperti mood, genre, dan tingkat energi. Profil tersebut kemudian digunakan untuk mencari musik yang paling relevan melalui layanan katalog musik.
 
-- ✅ Integrasi otomatis Book API → Gemini AI → Music API
-- ✅ AI-powered music recommendation berdasarkan analisis buku
-- ✅ Web interface yang modern dan responsive
-- ✅ Real-time music profile generation (genre, mood, energy)
-- ✅ Error handling dan fallback strategy
-- ✅ RESTful API dengan JSON response
+Sebagai bagian dari arsitektur microservice, sistem ini tidak menyimpan data buku maupun musik secara langsung. Seluruh data diambil melalui komunikasi antarlayanan menggunakan REST API, sehingga sistem tetap modular, scalable, dan mudah dikembangkan.
 
-## 🏗️ Architecture
+---
 
-```
-┌──────────┐    ┌─────────────────────┐    ┌─────────────┐
-│  User    │───▶│  Integration API    │───▶│  Book API   │
-│ Browser  │◀───│  (Orchestration)    │    │ (Service A) │
-└──────────┘    └─────────────────────┘    └─────────────┘
-                         │      │
-                         │      └──────────▶┌─────────────┐
-                         │                  │  Gemini AI  │
-                         │                  │  (Decision  │
-                         │      ┌───────────│   Maker)    │
-                         │      │           └─────────────┘
-                         │      ▼
-                         └──────────────────▶┌─────────────┐
-                                             │  Music API  │
-                                             │ (Service B) │
-                                             └─────────────┘
-```
+## 2. Arsitektur Sistem 🔗
 
-## 🚫 Deployment Strategy
+Sistem ini berperan sebagai **orchestrator service** yang menghubungkan beberapa layanan utama:
 
-**Layanan ini TIDAK dideploy di STB** karena:
-- Beban komputasi AI (Gemini API calls) dapat menyebabkan latency
-- Resource intensif (memory & CPU)
-- STB harus fokus pada core service (Music API)
-- Orchestration layer harus terpisah untuk scalability
+- **Book Catalog Service** → Menyediakan data buku  
+- **Gemini AI Service** → Menganalisis karakter dan suasana buku  
+- **Music Catalog Service** → Menyediakan rekomendasi musik  
 
-**Recommended**: Deploy di server terpisah (VPS/Cloud) atau local development machine.
+Alur kerja sistem:
+1. Pengguna memilih buku dari katalog.
+2. Sistem mengambil data buku dari Book Service.
+3. Deskripsi buku dianalisis oleh Gemini AI.
+4. Hasil analisis digunakan untuk mencari musik yang sesuai.
+5. Rekomendasi musik ditampilkan kepada pengguna.
 
-## 🛠️ Tech Stack
+---
 
-**Backend:**
-- Node.js 18+
-- Express.js 4.x
-- Axios (HTTP client)
-- @google/generative-ai (Gemini SDK)
-- dotenv, cors, helmet
+## 3. Akses Layanan 🌐
 
-**Frontend:**
-- HTML5 + Vanilla CSS + Vanilla JavaScript
-- Modern responsive design with animations
+Layanan dapat diakses melalui endpoint berikut:
 
-## 📦 Installation
+https://<domain-integrated-service>
 
-### Prerequisites
 
-- Node.js version 18 or higher
-- npm (Node Package Manager)
-- API Keys:
-  - Gemini AI API Key (from [Google AI Studio](https://ai.google.dev/))
-  - Book API credentials (from rekan)
-  - Music API credentials (yours)
+Endpoint ini menangani seluruh proses orkestrasi antar layanan.
 
-### Setup Steps
+---
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## 4. Fitur Utama ✨
 
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   ```
+| Fitur | Deskripsi |
+|------|-----------|
+| Integrasi Buku & Musik | Menghubungkan data buku dengan rekomendasi musik |
+| Analisis Berbasis AI | Menggunakan Gemini AI untuk memahami suasana buku |
+| Orkestrasi Layanan | Mengelola komunikasi antar microservice |
+| Web Interface | Menyediakan antarmuka sederhana untuk pengguna |
+| Arsitektur Modular | Mudah dikembangkan dan diintegrasikan |
 
-3. **Edit `.env` file:**
-   ```env
-   PORT=3000
-   GEMINI_API_KEY=your_actual_gemini_api_key
-   BOOK_API_BASE_URL=http://book-api-url.com/api
-   BOOK_API_KEY=your_book_api_key
-   MUSIC_API_BASE_URL=http://music-api-url.com/api
-   MUSIC_API_KEY=your_music_api_key
-   ```
+---
 
-## 🚀 Usage
+## 5. Contoh Endpoint 🔌
 
-### Development Mode (with auto-reload)
-```bash
-npm run dev
-```
-
-### Production Mode
-```bash
-npm start
-```
-
-Application will run at: `http://localhost:3000`
-
-### Web Interface
-
-1. Open browser and navigate to `http://localhost:3000`
-2. Enter a Book ID in the search box
-3. Click "Find Soundtrack"
-4. View book information and music recommendations
-
-### API Endpoints
-
-#### Get Soundtrack Recommendations
-```
+### 🔹 Rekomendasi Musik Berdasarkan Buku
 GET /api/soundtrack/:bookId
-```
 
-**Response:**
+Contoh:
+/api/soundtrack/12
+
+Endpoint ini akan:
+- Mengambil detail buku berdasarkan ID
+- Menganalisis karakter buku menggunakan AI
+- Menghasilkan rekomendasi musik yang sesuai
+
+---
+
+## 6. Contoh Response 📦
+
 ```json
 {
   "success": true,
   "data": {
     "book": {
-      "id": "123",
-      "title": "The Underground Detective",
-      "genre": "Mystery/Noir",
-      "description": "...",
-      "tags": ["crime", "urban", "1940s"]
+      "title": "The Silent Forest",
+      "genre": "Mystery"
     },
     "musicProfile": {
-      "primaryGenre": "jazz",
-      "secondaryGenre": "blues",
       "mood": "dark",
-      "energy": 4,
-      "tempo": "slow",
-      "reasoning": "..."
+      "energy": "low"
     },
     "recommendations": [
       {
-        "id": "m456",
-        "title": "Midnight Blues",
-        "artist": "Miles Davis",
-        "genre": "jazz",
-        "duration": 240
+        "title": "Midnight Echoes",
+        "artist": "Lunar Waves"
       }
     ]
   }
 }
 ```
-
-#### Health Check
-```
-GET /api/health
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "status": "ok",
-  "timestamp": "2025-12-27T00:00:00.000Z",
-  "services": {
-    "gemini": "connected"
-  }
-}
-```
-
-## 📁 Project Structure
-
-```
-integrated_service/
-├── src/
-│   ├── config/
-│   │   └── config.js              # Configuration management
-│   ├── controllers/
-│   │   └── soundtrackController.js # Main orchestration logic
-│   ├── services/
-│   │   ├── bookService.js         # Book API integration
-│   │   ├── musicService.js        # Music API integration
-│   │   └── geminiService.js       # Gemini AI integration
-│   ├── prompts/
-│   │   └── musicMappingPrompt.js  # Gemini AI prompts
-│   ├── routes/
-│   │   └── soundtrackRoutes.js    # API routes
-│   ├── middleware/
-│   │   └── errorHandler.js        # Error handling
-│   ├── app.js                     # Express setup
-│   └── server.js                  # Server initialization
-├── public/
-│   ├── index.html                 # Web interface
-│   ├── css/
-│   │   └── styles.css             # Styling
-│   └── js/
-│       └── app.js                 # Client JavaScript
-├── .env                           # Environment variables
-├── .env.example                   # Template
-├── package.json                   # Dependencies
-└── README.md                      # This file
-```
-
-## 🧪 Testing
-
-### Manual Testing
-
-```bash
-# Health check
-curl http://localhost:3000/api/health
-
-# Get soundtrack for book ID 1
-curl http://localhost:3000/api/soundtrack/1
-```
-
-### Testing Checklist
-
-- [ ] Application starts without errors
-- [ ] Web interface accessible in browser
-- [ ] Search with valid Book ID returns results
-- [ ] Book information displays correctly
-- [ ] Music recommendations display correctly
-- [ ] Music profile matches book atmosphere
-- [ ] Error handling works (invalid Book ID)
-- [ ] Response time acceptable (< 10 seconds)
-
-## 🔧 Troubleshooting
-
-**Error: "GEMINI_API_KEY is not defined"**
-- Ensure `.env` file exists and contains valid API key
-- Restart application after editing `.env`
-
-**Error: "Book not found"**
-- Verify Book API is running
-- Check `BOOK_API_BASE_URL` in `.env`
-- Verify Book ID is valid
-
-**Error: "Music API unavailable"**
-- Verify Music API is running
-- Check `MUSIC_API_BASE_URL` and `MUSIC_API_KEY` in `.env`
-
-**Slow response time**
-- Normal latency is 2-5 seconds (3 API calls)
-- Check internet connection
-- Consider implementing caching
-
-## 📚 Documentation
-
-For detailed documentation, see:
-- `README.txt` - Comprehensive operational guide (Indonesia)
-- `ARCHITECTURE.md` - Technical architecture details
-
-## 🤝 Integration Details
-
-This service integrates three components:
-
-1. **Book Catalog API** (Service A - Rekan): Provides book information
-2. **Gemini AI**: Analyzes books and generates music profiles
-3. **Music Catalog API** (Service B - Yours): Provides music recommendations
-
-## 📄 License
-
-This project is created for academic purposes (TST - Tugas 3).
-
-## 👥 Contact
-
-For questions or issues:
-- Book API: Contact your rekan
-- Music API: Your documentation
-- Gemini AI: [Google AI Documentation](https://ai.google.dev/docs)
-
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-12-27  
-**Powered by:** Gemini AI
+## 7. Catatan Tambahan 📝
+
+- Sistem ini tidak menyimpan data pengguna.
+- Seluruh komunikasi dilakukan melalui REST API.
+- Dirancang agar mudah dikembangkan untuk fitur lanjutan seperti personalisasi rekomendasi.
+
+
+
+
+
+
