@@ -17,22 +17,15 @@ const dom = {
     detailView: document.getElementById('detailView'),
     globalBackBtn: document.getElementById('globalBackBtn'),
     loader: document.getElementById('loader'),
-    // Selektor tambahan untuk kontrol visibilitas
     searchBox: document.querySelector('.search-box'),
     genreSelect: document.getElementById('genreSelect'),
     topRatedToggle: document.querySelector('.top-rated-toggle'),
     pagination: document.querySelector('.pagination')
 };
 
-/**
- * MENGADOPSI TEKNIK DARI APPTGT.JS: 
- * Menggunakan Event Listener pada parent (bookGrid) agar card responsif.
- */
 document.addEventListener('DOMContentLoaded', () => {
-    // Inisialisasi awal
     loadBooks();
 
-    // Event Delegation untuk card buku
     dom.bookGrid.addEventListener('click', (e) => {
         const card = e.target.closest('.book-item');
         if (card) {
@@ -57,15 +50,31 @@ async function loadBooks() {
             params.append('top_rated', 'true');
         }
 
+        console.log('Calling API:', `${API_BASE_URL}/search-books?${params.toString()}`);
+        
         const res = await fetch(`${API_BASE_URL}/search-books?${params.toString()}`);
+        
+        // Debug response
+        const contentType = res.headers.get('content-type');
+        console.log('Response Content-Type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('Received HTML instead of JSON:', text.substring(0, 500));
+            throw new Error('Server returned HTML instead of JSON. Check Vercel logs.');
+        }
+        
         const result = await res.json();
         
         if (result.success) {
             renderCatalog(result.data);
             document.getElementById('pageLabel').textContent = `Page ${state.page}`;
+        } else {
+            throw new Error(result.error || 'Failed to load books');
         }
     } catch (err) {
         console.error("Gagal load buku:", err);
+        alert(`Error loading books: ${err.message}`);
     } finally {
         hideLoader();
     }
@@ -90,20 +99,26 @@ function renderCatalog(books) {
     `).join('');
 }
 
-/**
- * TAHAP DETAIL: Menampilkan Detail Buku
- */
 async function openBookDetail(id) { 
     state.selectedId = id;
     showLoader("Loading book details...");
     try {
+        console.log('Calling API:', `${API_BASE_URL}/search-book/${id}`);
+        
         const res = await fetch(`${API_BASE_URL}/search-book/${id}`);
+        
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('Received HTML instead of JSON:', text.substring(0, 500));
+            throw new Error('Server returned HTML instead of JSON');
+        }
+        
         const result = await res.json();
 
         if (!result.success) throw new Error(result.error);
         const book = result.data;
 
-        // Update UI Detail
         document.getElementById('detTitle').textContent = book.title;
         document.getElementById('detAuthor').textContent = book.author;
         document.getElementById('detRating').textContent = `(${book.rating})`;
@@ -116,29 +131,25 @@ async function openBookDetail(id) {
         const tagsHtml = (book.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
         document.getElementById('detTags').innerHTML = tagsHtml;
 
-        // Reset Area AI
         document.getElementById('aiReasoning').textContent = "Click the button to let Gemini AI analyze the atmosphere...";
         document.getElementById('trackList').innerHTML = "";
 
-        // Navigasi Tampilan & Sembunyikan Kontrol Filter
         dom.catalogView.classList.add('hidden');
         dom.detailView.classList.remove('hidden');
         dom.pagination.classList.add('hidden');
 
-        // Force hide elemen filter sesuai instruksi
         dom.searchBox.style.display = 'none';
         dom.genreSelect.style.display = 'none';
         dom.topRatedToggle.style.display = 'none';
 
-        // Atur Tombol Back agar memenuhi lebar toolbar
         dom.globalBackBtn.classList.remove('hidden');
         dom.globalBackBtn.style.display = 'block';
         dom.globalBackBtn.style.width = '100%';
 
         window.scrollTo(0, 0); 
     } catch (err) {
-        console.error(err);
-        alert("Failed to load book details");
+        console.error('Error loading book detail:', err);
+        alert("Failed to load book details: " + err.message);
     } finally {
         hideLoader();
     }
@@ -147,7 +158,17 @@ async function openBookDetail(id) {
 async function generateAI() {
     showLoader("Gemini AI is analyzing the vibe...");
     try {
-        const res = await fetch(`/api/recommend/${state.selectedId}`);
+        console.log('Calling API:', `${API_BASE_URL}/recommend/${state.selectedId}`);
+        
+        const res = await fetch(`${API_BASE_URL}/recommend/${state.selectedId}`);
+        
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('Received HTML instead of JSON:', text.substring(0, 500));
+            throw new Error('Server returned HTML instead of JSON');
+        }
+        
         const result = await res.json();
         
         if (!result.success) throw new Error(result.error);
@@ -165,29 +186,27 @@ async function generateAI() {
         `).join('');
         document.getElementById('trackList').innerHTML = trackHtml;
     } catch (err) {
+        console.error('Error generating AI recommendations:', err);
         alert("Error: " + err.message);
     } finally {
         hideLoader();
     }
 }
 
-// Navigasi Kembali ke Katalog
 dom.globalBackBtn.onclick = () => {
     dom.catalogView.classList.remove('hidden');
     dom.detailView.classList.add('hidden');
     dom.pagination.classList.remove('hidden');
     dom.globalBackBtn.classList.add('hidden');
     
-    // Kembalikan visibilitas elemen filter
     dom.searchBox.style.display = 'block';
     dom.genreSelect.style.display = 'block';
-    dom.topRatedToggle.style.display = 'flex'; // Flex sesuai desain asli CSS
-    dom.globalBackBtn.style.width = 'auto'; // Reset lebar tombol
+    dom.topRatedToggle.style.display = 'flex';
+    dom.globalBackBtn.style.width = 'auto';
 };
 
 document.getElementById('aiActionBtn').onclick = generateAI;
 
-// Filter & Search
 document.getElementById('genreSelect').onchange = (e) => {
     state.genre = e.target.value; 
     state.page = 1; 
@@ -208,7 +227,6 @@ document.getElementById('searchInput').onkeypress = (e) => {
     }
 };
 
-// Pagination
 document.getElementById('prevBtn').onclick = () => {
     if (state.page > 1) {
         state.page--;
@@ -227,4 +245,7 @@ function showLoader(text) {
     dom.loader.classList.remove('hidden'); 
     document.getElementById('loaderText').textContent = text;
 }
-function hideLoader() { dom.loader.classList.add('hidden'); }
+
+function hideLoader() { 
+    dom.loader.classList.add('hidden'); 
+}
