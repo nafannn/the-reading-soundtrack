@@ -1,13 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 const routes = require('./routes/soundtrackRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable for development
+}));
 
 // CORS middleware
 app.use(cors());
@@ -15,9 +18,6 @@ app.use(cors());
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files (frontend)
-app.use(express.static('public'));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -29,13 +29,25 @@ app.use((req, res, next) => {
     next();
 });
 
-// API Routes
+// ⭐ API ROUTES - HARUS DIDAHULUKAN SEBELUM STATIC FILES!
 app.use('/api', routes);
 
-// 404 handler
-app.use(notFoundHandler);
+// Serve static files (frontend)
+// Di Vercel, static files otomatis di-serve dari folder /public
+// Jadi middleware ini hanya aktif untuk development lokal
+if (!process.env.VERCEL) {
+    app.use(express.static(path.join(__dirname, '../public')));
+    
+    // Fallback untuk SPA routing (semua non-API routes ke index.html)
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../public/index.html'));
+    });
+}
 
-// Error handler
+// 404 handler untuk API endpoints
+app.use('/api/*', notFoundHandler);
+
+// Global error handler
 app.use(errorHandler);
 
 module.exports = app;
