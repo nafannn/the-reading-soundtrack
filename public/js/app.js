@@ -94,6 +94,7 @@ function renderCatalog(books) {
             </div>
             <h4 class="book-item-title">${book.title}</h4>
             <p class="book-item-author">by ${book.author}</p>
+            <p style="font-size: 11px; color: var(--primary); margin: 4px 0;">${book.genre || ''}</p>
             <div class="book-item-rating">⭐ ${book.rating ? Number(book.rating).toFixed(2) : '0.00'}</div>
         </div>
     `).join('');
@@ -121,6 +122,7 @@ async function openBookDetail(id) {
 
         document.getElementById('detTitle').textContent = book.title;
         document.getElementById('detAuthor').textContent = book.author;
+        document.getElementById('detGenre').textContent = book.genre || 'N/A';
         document.getElementById('detRating').textContent = `(${Number(book.rating).toFixed(2)})`;
         document.getElementById('detLang').textContent = book.language;
         document.getElementById('detYear').textContent = book.pub_year;
