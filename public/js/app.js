@@ -94,7 +94,7 @@ function renderCatalog(books) {
             </div>
             <h4 class="book-item-title">${book.title}</h4>
             <p class="book-item-author">by ${book.author}</p>
-            <div class="book-item-rating">⭐ ${book.rating ? Number(book.rating).toFixed(1) : '0.0'}</div>
+            <div class="book-item-rating">⭐ ${book.rating ? Number(book.rating).toFixed(2) : '0.00'}</div>
         </div>
     `).join('');
 }
@@ -121,7 +121,7 @@ async function openBookDetail(id) {
 
         document.getElementById('detTitle').textContent = book.title;
         document.getElementById('detAuthor').textContent = book.author;
-        document.getElementById('detRating').textContent = `(${book.rating})`;
+        document.getElementById('detRating').textContent = `(${Number(book.rating).toFixed(2)})`;
         document.getElementById('detLang').textContent = book.language;
         document.getElementById('detYear').textContent = book.pub_year;
         document.getElementById('detPages').textContent = book.page_count;
