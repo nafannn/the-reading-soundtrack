@@ -5,7 +5,7 @@ const config = {
 
     gemini: {
         apiKey: process.env.GEMINI_API_KEY,
-        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp', // Default model
+        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
     },
 
     bookApi: {
@@ -34,10 +34,17 @@ const missing = requiredConfigs.filter(conf => {
 });
 
 if (missing.length > 0) {
-    const errorMsg = `MISSING CONFIG: ${missing.map(m => m.env).join(', ')}`;
+    const errorMsg = `⚠️  MISSING ENVIRONMENT VARIABLES: ${missing.map(m => m.env).join(', ')}`;
     console.error(errorMsg);
-    if (process.env.NODE_ENV !== 'production') {
+    
+    // Jangan exit di production/Vercel - biarkan error muncul di dashboard
+    // Hanya exit saat development lokal
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+        console.error('❌ Application cannot start without required configuration.');
         process.exit(1);
+    } else {
+        // Di production, log warning tapi tetap jalan
+        console.warn('⚠️  Application starting with missing configuration. Errors may occur.');
     }
 }
 
