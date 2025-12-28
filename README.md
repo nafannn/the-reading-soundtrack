@@ -38,7 +38,7 @@ Alur kerja sistem:
 
 Layanan dapat diakses melalui endpoint berikut:
 
-https://<domain-integrated-service>
+https://the-reading-soundtrack.vercel.app/
 
 
 Endpoint ini menangani seluruh proses orkestrasi antar layanan.
