@@ -60,10 +60,10 @@ Endpoint ini menangani seluruh proses orkestrasi antar layanan.
 ## 5. Contoh Endpoint 🔌
 
 ### 🔹 Rekomendasi Musik Berdasarkan Buku
-GET /api/soundtrack/:bookId
+GET /api/recommend/:bookId
 
 Contoh:
-/api/soundtrack/12
+/api/recommend/12
 
 Endpoint ini akan:
 - Mengambil detail buku berdasarkan ID
