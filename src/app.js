@@ -8,9 +8,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const app = express();
 
 // Security middleware
-app.use(helmet({
-    contentSecurityPolicy: false, // Disable for development
-}));
+app.use(helmet());
 
 // CORS middleware
 app.use(cors());
@@ -29,25 +27,26 @@ app.use((req, res, next) => {
     next();
 });
 
-// ⭐ API ROUTES - HARUS DIDAHULUKAN SEBELUM STATIC FILES!
+// API Routes - PRIORITAS PERTAMA
 app.use('/api', routes);
 
-// Serve static files (frontend)
-// Di Vercel, static files otomatis di-serve dari folder /public
-// Jadi middleware ini hanya aktif untuk development lokal
-if (!process.env.VERCEL) {
-    app.use(express.static(path.join(__dirname, '../public')));
-    
-    // Fallback untuk SPA routing (semua non-API routes ke index.html)
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../public/index.html'));
-    });
-}
+// Serve static files untuk semua environment
+// Express akan skip ini kalau route sudah match di atas
+app.use(express.static(path.join(__dirname, '../public')));
 
-// 404 handler untuk API endpoints
-app.use('/api/*', notFoundHandler);
+// Catch-all untuk SPA - hanya untuk non-API routes
+app.get('*', (req, res, next) => {
+    // Skip kalau ini API request
+    if (req.url.startsWith('/api')) {
+        return next();
+    }
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
-// Global error handler
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handler
 app.use(errorHandler);
 
 module.exports = app;
