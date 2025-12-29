@@ -167,9 +167,6 @@ dom.globalBackBtn.onclick = () => {
     history.back(); // Memicu onpopstate
 };
 
-// ... (Sisanya generateAI, pagination, filter tetap sama) ...
-// (Pastikan fungsi generateAI tetap ada di bawah sini)
-
 async function generateAI() {
     showLoader("Gemini AI is analyzing the vibe...");
     try {

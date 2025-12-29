@@ -68,7 +68,7 @@ class BookService {
      */
     async getBookByTitle(title) {
         try {
-            // Step 1: Search untuk mendapatkan ID
+            // Search untuk mendapatkan ID
             console.log(`Searching for book: "${title}"`);
             const response = await axios.get(`${this.baseUrl}/books`, {
                 params: {
@@ -89,7 +89,7 @@ class BookService {
                 throw new Error(`Buku dengan judul "${title}" tidak ditemukan`);
             }
 
-            // Step 2: Jika punya ID, fetch detail lengkap (termasuk description)
+            // Fetch detail lengkap
             if (exactMatch.id) {
                 console.log(`✓ Found book "${title}" with ID ${exactMatch.id}, fetching full details...`);
                 return await this.getBookById(exactMatch.id);
@@ -114,13 +114,13 @@ class BookService {
             title: book.title,
             author: book.author || 'Unknown',
             genre: book.genre,
-            language: book.language || 'N/A', // Tambahkan ini
-            pub_year: book.pub_year || 'N/A',   // Tambahkan ini
-            age_category: book.age_category || 'General', // Tambahkan ini
+            language: book.language || 'N/A', 
+            pub_year: book.pub_year || 'N/A', 
+            age_category: book.age_category || 'General', 
             rating: book.rating || '0.0',
             tags: typeof book.tags === 'string' ? book.tags.split(',').map(t => t.trim()) : (book.tags || []),
             description: book.description || 'No description available.',
-            page_count: book.page_count || 'N/A' // Pastikan ini terisi
+            page_count: book.page_count || 'N/A'
         };
     }
 
