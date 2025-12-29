@@ -24,6 +24,10 @@ const dom = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Inisialisasi state history awal
+    if (!history.state) {
+        history.replaceState({ view: 'catalog' }, 'Catalog', '');
+    }
     loadBooks();
 
     dom.bookGrid.addEventListener('click', (e) => {
@@ -36,6 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Listener untuk Tombol Back Bawaan Browser
+window.onpopstate = function(event) {
+    if (event.state && event.state.view === 'catalog') {
+        showCatalogUI();
+    } else if (event.state && event.state.view === 'detail') {
+        openBookDetail(event.state.id, false); // false agar tidak pushState lagi
+    }
+};
 
 async function loadBooks() {
     showLoader("Fetching books...");
@@ -50,17 +63,10 @@ async function loadBooks() {
             params.append('top_rated', 'true');
         }
 
-        console.log('Calling API:', `${API_BASE_URL}/search-books?${params.toString()}`);
-        
         const res = await fetch(`${API_BASE_URL}/search-books?${params.toString()}`);
-        
-        // Debug response
         const contentType = res.headers.get('content-type');
-        console.log('Response Content-Type:', contentType);
         
         if (!contentType || !contentType.includes('application/json')) {
-            const text = await res.text();
-            console.error('Received HTML instead of JSON:', text.substring(0, 500));
             throw new Error('Server returned HTML instead of JSON. Check Vercel logs.');
         }
         
@@ -69,12 +75,9 @@ async function loadBooks() {
         if (result.success) {
             renderCatalog(result.data);
             document.getElementById('pageLabel').textContent = `Page ${state.page}`;
-        } else {
-            throw new Error(result.error || 'Failed to load books');
         }
     } catch (err) {
         console.error("Gagal load buku:", err);
-        alert(`Error loading books: ${err.message}`);
     } finally {
         hideLoader();
     }
@@ -89,9 +92,7 @@ function renderCatalog(books) {
     dom.bookGrid.innerHTML = books.map(book => `
         <div class="book-item" data-id="${book.id}" style="cursor:pointer">
             ${book.rating > 4.5 ? '<div class="badge-top">⭐ Top Rated</div>' : ''}
-            <div class="book-cover-placeholder">
-                <span>📖</span>
-            </div>
+            <div class="book-cover-placeholder"><span>📖</span></div>
             <h4 class="book-item-title">${book.title}</h4>
             <p class="book-item-author">by ${book.author}</p>
             <p style="font-size: 11px; color: var(--primary); margin: 4px 0;">${book.genre || ''}</p>
@@ -100,26 +101,17 @@ function renderCatalog(books) {
     `).join('');
 }
 
-async function openBookDetail(id) { 
+async function openBookDetail(id, pushHistory = true) { 
     state.selectedId = id;
     showLoader("Loading book details...");
     try {
-        console.log('Calling API:', `${API_BASE_URL}/search-book/${id}`);
-        
         const res = await fetch(`${API_BASE_URL}/search-book/${id}`);
-        
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await res.text();
-            console.error('Received HTML instead of JSON:', text.substring(0, 500));
-            throw new Error('Server returned HTML instead of JSON');
-        }
-        
         const result = await res.json();
 
         if (!result.success) throw new Error(result.error);
         const book = result.data;
 
+        // Fill UI
         document.getElementById('detTitle').textContent = book.title;
         document.getElementById('detAuthor').textContent = book.author;
         document.getElementById('detGenre').textContent = book.genre || 'N/A';
@@ -132,30 +124,51 @@ async function openBookDetail(id) {
         
         const tagsHtml = (book.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
         document.getElementById('detTags').innerHTML = tagsHtml;
-
         document.getElementById('aiReasoning').textContent = "Click the button to let Gemini AI analyze the atmosphere...";
         document.getElementById('trackList').innerHTML = "";
 
+        // Browser History Logic
+        if (pushHistory) {
+            history.pushState({ view: 'detail', id: id }, book.title, `#book-${id}`);
+        }
+
+        // Tampilkan View Detail
         dom.catalogView.classList.add('hidden');
         dom.detailView.classList.remove('hidden');
         dom.pagination.classList.add('hidden');
-
         dom.searchBox.style.display = 'none';
         dom.genreSelect.style.display = 'none';
         dom.topRatedToggle.style.display = 'none';
-
         dom.globalBackBtn.classList.remove('hidden');
         dom.globalBackBtn.style.display = 'block';
-        dom.globalBackBtn.style.width = '100%';
 
         window.scrollTo(0, 0); 
     } catch (err) {
-        console.error('Error loading book detail:', err);
-        alert("Failed to load book details: " + err.message);
+        console.error('Error:', err);
+        alert("Failed to load details");
     } finally {
         hideLoader();
     }
 }
+
+// Fungsi Pusat untuk Kembali ke Katalog
+function showCatalogUI() {
+    dom.catalogView.classList.remove('hidden');
+    dom.detailView.classList.add('hidden');
+    dom.pagination.classList.remove('hidden');
+    dom.globalBackBtn.classList.add('hidden');
+    dom.searchBox.style.display = 'block';
+    dom.genreSelect.style.display = 'block';
+    dom.topRatedToggle.style.display = 'flex';
+    window.scrollTo(0, 0);
+}
+
+dom.globalBackBtn.onclick = () => {
+    history.back(); // Memicu onpopstate
+};
+
+// ... (Sisanya generateAI, pagination, filter tetap sama) ...
+// (Pastikan fungsi generateAI tetap ada di bawah sini)
 
 async function generateAI() {
     showLoader("Gemini AI is analyzing the vibe...");
